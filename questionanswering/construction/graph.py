@@ -11,22 +11,25 @@ WithScore = namedtuple("WithScore", ['graph', 'scores'])
 
 
 class Edge:
+    #显示定义属性变量，并初始化
     def __init__(self,
-                 leftentityid=None,
-                 relationid=None,
-                 rightentityid=None,
-                 qualifierrelationid=None,
-                 qualifierentityid=None):
-        self.edgeid = 0
+                 leftentityid=None, #三元组左侧实体ID
+                 relationid=None,   #关系ID
+                 rightentityid=None,    #三元组右侧实体ID
+                 qualifierrelationid=None, #合格关系ID？-->正确关系ID？or
+                 qualifierentityid=None):   #合格实体ID？-->正确答案ID？
+        self.edgeid = 0  #edgeid 初始化为0
         self.leftentityid = leftentityid
         self.relationid = relationid
         self.rightentityid = rightentityid
         self.qualifierrelationid = qualifierrelationid
         self.qualifierentityid = qualifierentityid
         if self.relationid != 'iclass':
+            #断言语句，如果列表长度不等于3，就抛出异常
             assert len({self.leftentityid, self.rightentityid, self.qualifierentityid}) == 3
 
     @property
+    #定义类型：三元 or 二元
     def type(self):
         return "ternary" if self.qualifierentityid and (self.relationid or self.rightentityid) else "binary"
 
@@ -45,18 +48,20 @@ class Edge:
         return self.leftentityid and self.rightentityid is not None and self.grounded \
                and not(self.qualifierentityid or self.qualifierrelationid) \
                and not self.rightentityid.isdigit()
-
+    #定义节点
     def nodes(self):
         return self.leftentityid, self.rightentityid, self.qualifierentityid
 
+    #颠倒实体前后顺序
     def invert(self):
         """
         Switch the right and left nodes changing the edge direction. Doesn't affect ternary edges.
         """
         if self.type == 'binary':
             self.leftentityid, self.rightentityid = self.rightentityid, self.leftentityid
-
+    #转换字符串
     def __str__(self):
+        #返回类名？& edgeid
         return f"{self.__class__.__name__}({self.edgeid})"
 
     def __repr__(self):
@@ -68,10 +73,12 @@ class Edge:
 DUMMY_EDGE = Edge(leftentityid="foo", rightentityid="bar")
 
 
+#边列表
 class EdgeList(collections.MutableSequence):
 
     def __init__(self):
         """
+        一个列表实现，用于确保边缘ID不重叠
         A list implementation that makes sure that edge ids are not overlapping.
 
 
@@ -82,38 +89,45 @@ class EdgeList(collections.MutableSequence):
         """
         self._list: List[Edge] = list()
 
+    #每当属性被赋值的时候都会调用该方法
     def __setitem__(self, index, value):
         self._set_edge_id(value)
         self._list[index] = value
 
+    #跟上面set函数的关系，以及跟edge类的关系？
     def _set_edge_id(self, edge):
         edge_ids = {e.edgeid for e in self._list if e.edgeid is not None}
         if edge.edgeid is None:
             edge.edgeid = 0
         while edge.edgeid in edge_ids:
             edge.edgeid += 1
-
+    #返回list中元素的个数
     def __len__(self):
         return len(self._list)
 
+    #当访问不存在的属性时会调用该方法
     def __getitem__(self, i):
         return self._list[i]
 
+    #当删除属性时调用该方法
     def __delitem__(self, i):
         del self._list[i]
 
+    #插入边？
     def insert(self, index, value):
         self._set_edge_id(value)
         self._list.insert(index, value)
 
+    #返回边列表？
     def __str__(self):
         return self._list.__str__()
 
     def __repr__(self):
         return self._list.__repr__()
 
-
+#语义图
 class SemanticGraph:
+    #初始化，
     def __init__(self,
                  edges: List[Edge]=None,
                  tokens: List[str]=None,
@@ -126,12 +140,16 @@ class SemanticGraph:
         >>> SemanticGraph(edges=[Edge(2, rightentityid="Q1", leftentityid="Q2"), Edge(2, rightentityid="Q1", leftentityid="Q2"), Edge(2, rightentityid="Q1", leftentityid="Q2")])
         SemanticGraph([Edge(2, Q2-None->Q1), Edge(3, Q2-None->Q1), Edge(4, Q2-None->Q1)])
         """
+        #边列表类EdgeList
         self.edges = EdgeList()
+        #？
         self.tokens = tokens if tokens else []
         self.free_entities = free_entities if free_entities else []
-        if edges:
-            self.edges.extend(edges)
 
+        if edges:
+            #在列表末尾一次性追加另一个序列中的多个值（用新列表扩展原来的列表）
+            self.edges.extend(edges)
+        #？？？初始化
         self.denotations = []
         self.denotation_classes = []
 
@@ -141,9 +159,12 @@ class SemanticGraph:
     def __repr__(self):
         return f"{self.__class__.__name__}({self.edges}, {len(self.free_entities)})"
 
+    #？？？
     def __copy__(self):
+        #返回调用类？
         return SemanticGraph(edges=[copy(e) for e in self.edges], tokens=self.tokens, free_entities=copy(self.free_entities))
 
+    #？？？获得接地边
     def get_ungrounded_edges(self):
         return [edge for edge in self.edges if not edge.grounded]
 
@@ -151,6 +172,7 @@ class SemanticGraph:
 def graph_format_update(g):
     """
     Moves modifiers into separate edges.
+    将修饰符移动到单独的边
 
     :param g:
     :return:
@@ -161,11 +183,14 @@ def graph_format_update(g):
     >>> graph_format_update({"edgeSet":[{'type': 'iclass', 'kbID': 'P31v', 'canonical_right': ['MTV Movie award', 'award', 'MTV annual movie award']}]})
     {'edgeSet': [{'type': 'iclass', 'kbID': 'P31v', 'canonical_right': 'award'}, {'type': 'iclass', 'kbID': 'P31v', 'canonical_right': 'MTV Movie award'}, {'type': 'iclass', 'kbID': 'P31v', 'canonical_right': 'MTV annual movie award'}], 'entities': []}
     """
+    #查看给定的图是否只使用允许的扩展
     if if_graph_adheres(g, allowed_extensions={'multi_rel', 'qualifier_rel', 'v-structure'}):
         return g
+
     g = copy_graph(g, with_iclass=True)
     new_edgeset = []
     for edge in g.get('edgeSet', []):
+        #判断是否为时间类型
         if edge.get("type") == 'time':
             edge['kbID'] = "P585v"
         elif "argmax" in edge:
@@ -189,6 +214,7 @@ def graph_format_update(g):
 def graph_has_temporal(g):
     """
     Test if there are temporal relation in the graph.
+    测试图中是否存在时间关系
 
     :param g: graph as a dictionary
     :return: True if graph has temporal relations, False otherwise
@@ -199,6 +225,7 @@ def graph_has_temporal(g):
 def if_graph_adheres(g, allowed_extensions=set()):
     """
     Test if the given graphs only uses the allowed extensions.
+    测试给定的图是否只使用允许的扩展
 
     :param g: graphs a dictionary with an edgeSet
     :param allowed_extensions: a set of allowed extensions
@@ -235,7 +262,7 @@ def if_graph_adheres(g, allowed_extensions=set()):
         return False
     return True
 
-
+#获取属性的字符串表示形式
 def get_property_str_representation(edge, property2label,
                                     use_placeholder=False,
                                     mind_direction=True,
@@ -244,6 +271,7 @@ def get_property_str_representation(edge, property2label,
                                     ):
     """
     Construct a string representation of a label using the property to label mapping.
+    使用属性来标记映射，构造标签的字符串表示形式
 
     :param edge: edge to translate
     :param property2label: property id to label mapping
@@ -525,7 +553,7 @@ def get_graph_last_edge(g, filter_out_types=set()):
                 return edge
         return {}
 
-
+#已弃用
 def construct_graphs(tokens, entities):
     """
     Deprecated
