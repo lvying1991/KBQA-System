@@ -10,6 +10,8 @@ from questionanswering.construction.sentence import Sentence
 from questionanswering.grounding import graph_queries, stages
 from wikidata import scheme
 
+"""vectorization：矢量"""
+
 ENTITY_TOKEN = "<e>"
 SPECIAL_TOKENS = {
     "MAX": "<max>",
@@ -43,7 +45,7 @@ def encode_for_model(selected_questions, model_type, word2idx=None):
     }[model_type]()
     return samples
 
-
+#使用特殊标记扩展嵌入
 def extend_embeddings_with_special_tokens(embeddings, word2idx):
     for el in SPECIAL_TOKENS.values():
         word2idx[el] = len(word2idx)
@@ -57,7 +59,7 @@ def extend_embeddings_with_special_tokens(embeddings, word2idx):
                                 axis=0)
     return embeddings, word2idx
 
-
+#编码批量图
 def encode_batch_graphs(questions: List[Sentence], vocab):
     max_negative_graphs = min(max(len(s.graphs) for s in questions), MAX_NEGATIVE_GRAPHS)
     out = np.zeros((len(questions), max_negative_graphs, MAX_EDGES, 2, MAX_LABEL_TOKEN_LEN), dtype=np.int32)
@@ -82,7 +84,7 @@ def encode_batch_graphs(questions: List[Sentence], vocab):
                     out[i, gi, ei, 1, :len(word_ids)] = word_ids
     return out
 
-
+#编码批量问题
 def encode_batch_questions(questions: List[Sentence], vocab):
     out = np.zeros((len(questions), 2,  MAX_LABEL_TOKEN_LEN), dtype=np.int32)
     for i, s in enumerate(questions):  # Iterate over lists of graphs for questions
@@ -92,7 +94,7 @@ def encode_batch_questions(questions: List[Sentence], vocab):
         out[i, 1, :len(word_ids)] = word_ids
     return out
 
-
+#编码结构特征
 def encode_structural_features(questions: List[Sentence]):
     max_negative_graphs = min(max(len(s.graphs) for s in questions), MAX_NEGATIVE_GRAPHS)
     out = np.zeros((len(questions), max_negative_graphs, 7), dtype=np.int32)
@@ -113,10 +115,14 @@ def encode_structural_features(questions: List[Sentence]):
 def _get_sentence_tokens(s: Sentence, replace_entities=True, mark_boundaries=False):
     """
     Get the list of sentence tokens.
-
+    获取语句标记列表
+    参数：s：语句对象
     :param s: a sentence object
+    参数：replace_entities: 选择性的用占位符替换实体。
     :param replace_entities: optionally replace the entities with a placeholder.
+    参数：mark_boundaries: 选择性的添加句子开始和结束标记。
     :param mark_boundaries: optionally add sentence start and end markers.
+    返回值：标记列表
     :return: a list of tokens
     >>> _get_sentence_tokens(Sentence(tagged=[{'originalText': k, 'pos': 'O', 'ner': 'O'} for k in "Who killed Lora Palmer ?".split()], entities=[{"type": "NNP", 'linkings': [], 'token_ids': [2,3]}]))
     ['Who', 'killed', '<e>', '?']
@@ -145,7 +151,7 @@ def _get_sentence_tokens(s: Sentence, replace_entities=True, mark_boundaries=Fal
         sentence_tokens = SENT_TOKENS[0:1] + sentence_tokens + SENT_TOKENS[1:2]
     return sentence_tokens
 
-
+#获取变得字符串表示
 def _get_edge_str_representation(edge: Edge, entity2label, entity2type,
                                  replace_entities=True,
                                  mark_boundaries=False,
@@ -193,7 +199,7 @@ def _entity_kbid2token(entity_kbid, entity2label, entity2type, replace_entities,
         tokens = SENT_TOKENS[0:1] + tokens + SENT_TOKENS[1:2]
     return tokens
 
-
+#编码批处理图结构
 def encode_batch_graph_structure(questions: List[Sentence], vocab):
     max_negative_graphs = min(max(len(s.graphs) for s in questions), MAX_NEGATIVE_GRAPHS)
 

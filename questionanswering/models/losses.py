@@ -6,7 +6,7 @@ from torch.autograd import Variable
 DEFAULT_MARGIN = 0.5
 MIN_TARGET_VALUE = 0.25
 
-
+#变量保证金损失？？？
 class VariableMarginLoss(nn.Module):
 
     def forward(self, predictions, target):

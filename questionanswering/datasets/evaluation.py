@@ -1,3 +1,4 @@
+#精确度
 def micro_avg_precision(guessed, correct, empty=None):
     """
     Tests:
@@ -30,7 +31,7 @@ def micro_avg_precision(guessed, correct, empty=None):
 
     return precision
 
-
+#f1分数
 def prec_rec_f1(predicted_idx, gold_idx, empty_label = None):
     if len(predicted_idx) != len(gold_idx):
         raise TypeError("predicted_idx and gold_idx should be of the same length.")
@@ -51,9 +52,13 @@ def retrieval_precision(gold, predicted):
     """
     Compute retrieval precision on the given gold set and predicted set.
     Note that it doesn't take into account the order or repeating elements.
-
+    计算给定黄金集和预测集的检索精度。
+    请注意，它没有考虑订单或重复元素
+    参数：gold:黄金检索元素集
+    参数：predicted:预测元素集
     :param gold: the set of gold retrieved elements
     :param predicted: the set of predicted elements
+    返回值：精度值
     :return: precision value
     >>> retrieval_precision({1,2,3},{2})
     1.0
@@ -73,7 +78,7 @@ def retrieval_tp_with_altlabels(gold, predicted_sets):
     """
     Compute rtrue positives on the given gold set and predicted set.
     Note that it doesn't take into account the order or repeating elements.
-
+    计算机给定黄金集和预测集的真正正面。 请注意，它没有考虑订单或重复元素？？
     :param gold: the set of gold retrieved elements
     :param predicted_sets: the set of predicted elements
     :return: number of true positives
@@ -89,7 +94,7 @@ def retrieval_prec_rec_f1(gold, predicted):
     """
     Compute retrieval precision, recall and f-score. Note that it doesn't take into account the order
     and repeating elements.
-
+    计算检索精度，召回率和f-score。 请注意，它没有考虑订单和重复的元素
     :param gold: the set of gold retrieved elements.
     :param predicted: the set of predicted elements.
     :return: a triple of precision, recall and f-score

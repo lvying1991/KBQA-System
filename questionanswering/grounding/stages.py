@@ -16,8 +16,10 @@ argmin_markers = {"first", "oldest"}
 def with_denotation_class_edge(g: SemanticGraph):
     """
     Adds an implicit graph otherwise a copy of the original graph is returned.
-    
+    添加隐式图，否则返回原始图的副本
+    参数：g：具有非空“实体”列表的图
     :param g: a graph with a non-empty 'entities' list
+    返回值：建议图列表
     :return: a list of suggested graphs
     >>> with_denotation_class_edge(SemanticGraph())
     [SemanticGraph([Edge(0, ?qvar-iclass->None)])]
@@ -35,8 +37,11 @@ def add_entity_and_relation(g: SemanticGraph, leg_length=1, fixed_relations=None
     """
     Takes a graph with a non-empty list of free entities and adds a new relations with the one of the free entities,
     thus removing it from the list.
-
+    使用非空的自由实体列表获取图并添加与其中一个自由实体的新关系，从而将其从列表中删除
+    《从非空实体集中获取一个自由实体加入图，并添加这个自由实体的新关系，然后f-e》个人理解
+    参数：g：具有非空实体列表的图
     :param g: a graph with a non-empty 'entities' list
+    返回值：建议图列表
     :return: a list of suggested graphs
     >>> add_entity_and_relation(SemanticGraph())
     []
@@ -121,8 +126,10 @@ def add_entity_and_relation(g: SemanticGraph, leg_length=1, fixed_relations=None
 def last_edge_numeric_constraint(g: SemanticGraph):
     """
     Adds a numeric restriction to the last added edge in the graph.
-
+    向图中最后添加的边添加数字限制
+    参数：g：具有非空边列表的图
     :param g: a graph with a non-empty list of edges
+    返回值：建议图列表
     :return: a list of suggested graphs
     >>> last_edge_numeric_constraint(SemanticGraph([Edge(leftentityid=QUESTION_VAR, rightentityid="Q76")], free_entities=[{'linkings':[("Q37876", "Natalie Portman")], 'tokens':["Portman"], 'type':'PERSON'}, {'linkings': [('2012', '2012')], 'type': 'YEAR', 'tokens': ['2012']}]))
     [SemanticGraph([Edge(0, ?qvar-None->Q76~None->2012)], 1)]
@@ -176,8 +183,10 @@ def last_edge_numeric_constraint(g: SemanticGraph):
 def add_relation(g: SemanticGraph):
     """
     Adds a new constraint edge to the graph.
-
+    向图中添加一个新的约束边
+    参数：g：具有非空边列表的语义图
     :param g: a semantic graph with a non-empty edge list
+    返回值：新图列表
     :return: a list of new graphs
     >>> add_relation(SemanticGraph([Edge(leftentityid=QUESTION_VAR, rightentityid="Q76")], tokens=['first']))
     [SemanticGraph([Edge(0, ?qvar-None->Q76), Edge(1, ?qvar-None->MIN)], 0), SemanticGraph([Edge(0, ?qvar-None->Q76), Edge(1, ?qvar-None->MAX)], 0)]

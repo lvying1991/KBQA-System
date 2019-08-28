@@ -44,8 +44,11 @@ split_pattern = re.compile(r"[\s'-:,]")
 def get_tagged_from_server(input_text, caseless=False):
     """
     Get pos tagged and ner from the CoreNLP Server
-
+    从CoreNLP服务器获取pos标记和ner
+    疑问：CoreNLP服务器？
+    参数：input_text:字符串形式的输入文本
     :param input_text: input text as a string
+    返回值：带有pos和ne标签的标记化文本
     :return: tokenized text with pos and ne tags
     >>> get_tagged_from_server("Light explodes over Pep Guardiola's head in Bernabeu press room. Will Mourinho stop at nothing?! Heh heh")[0] == \
     {'characterOffsetBegin': 0, 'ner': 'O', 'pos': 'JJ', 'characterOffsetEnd': 5, 'originalText': 'Light', 'lemma': 'light'}
@@ -78,6 +81,7 @@ def _preprocess_corenlp_input(input_text):
 def remove_links(input_text):
     """
     Remove links from the input text.
+    从输入文本中删除链接
     
     :param input_text: 
     :return:
@@ -97,6 +101,7 @@ def remove_links(input_text):
 def _preprocess_twitter_handles(input_text):
     """
     Split twitter handles and hashtags into tokens when possible
+    尽可能将twitter句柄和主题标签拆分为标记
     
     :param input_text: 
     :return:
@@ -139,7 +144,8 @@ def _tagged2tuples(tagged_dicts):
 def _lemmatize_tokens(entity_tokens):
     """
     Lemmatize the list of tokens using the Stanford CoreNLP.
-
+    使用Stanford CoreNLP对标记列表进行Lemmatize（标准化？）
+    参数：实体标记
     :param entity_tokens:
     :return:
     >>> _lemmatize_tokens(['House', 'Of', 'Representatives'])
@@ -182,7 +188,8 @@ def load_resource_file_backoff(f):
 def load_word_embeddings(path):
     """
     Loads pre-trained embeddings from the specified path.
-
+    从指定路径加载预先训练的嵌入。
+    return：嵌入作为一个numpy数组，单词到索引字典？
     @return (embeddings as an numpy array, word to index dictionary)
     """
     word2idx = defaultdict(lambda: 1)  # Maps a word to the index in the embeddings matrix
@@ -213,9 +220,12 @@ def load_word_embeddings(path):
 def get_idx(word, word2idx):
     """
     Get the word index for the given word. Maps all numbers to 0, lowercases if necessary.
-
+    获取给定单词的单词索引。 将所有数字映射到0，必要时将其变成小写。
+    参数：word：问题中的单词
     :param word: the word in question
+    参数：word2idx：由嵌入文件构造的字典
     :param word2idx: dictionary constructed from an embeddings file
+    返回值：单词的整数索引
     :return: integer index of the word
     """
     unknown_idx = word2idx[unknown_el]
@@ -240,8 +250,10 @@ def get_idx(word, word2idx):
 def get_trigram_index(sentences):
     """
     Create a trigram index from the list of tokenized sentences.
-
+    从标记化句子列表中创建一个三元组索引。
+    参数：sentences：标记列表列表
     :param sentences: list of list of tokens
+    返回值：三元组索引映射
     :return: trigram to index mapping
     >>> len(get_trigram_index([['who', 'played', 'whom']]))
     11
@@ -256,8 +268,10 @@ def get_trigram_index(sentences):
 def tokens_to_trigrams(tokens):
     """
     Convert a list of tokens to a list of trigrams following the hashing technique.
-
+    将散列列表转换为散列技术后的三元组列表。
+    参数：标记列表
     :param tokens: list of tokens
+    返回值：字符三元组列表
     :return: list of triples of characters
     >>> tokens_to_trigrams(['who', 'played', 'bond'])
     [('#', 'w', 'h'), ('w', 'h', 'o'), ('h', 'o', '#'), ('#', 'p', 'l'), ('p', 'l', 'a'), ('l', 'a', 'y'), ('a', 'y', 'e'), ('y', 'e', 'd'), ('e', 'd', '#'), ('#', 'b', 'o'), ('b', 'o', 'n'), ('o', 'n', 'd'), ('n', 'd', '#')]
@@ -268,8 +282,10 @@ def tokens_to_trigrams(tokens):
 def get_elements_index(element_set: Set):
     """
     Create an element to index mapping, that includes a zero and an unknown element.
-
+    创建索引映射的元素，包括零和未知元素。
+    参数：element_set: 要枚举的元素集
     :param element_set: set of elements to enumerate
+    返回值：索引字典？
     :return: an index as a dictionary
     >>> get_elements_index({"a", "b", "c", all_zeroes})["_UNKNOWN"] 
     4
@@ -292,7 +308,7 @@ def load_json_resource(path_to_file):
 @load_resource_file_backoff
 def load_property_labels(path_to_property_labels):
     """
-    
+    参数：属性标签的路径
     :param path_to_property_labels: 
     :return:
     >>> load_property_labels("../resources/properties_with_labels.txt")["P106"]
@@ -314,8 +330,10 @@ def load_property_labels(path_to_property_labels):
 def load_entity_freq_map(path_to_map):
     """
     Load the map of entity frequencies from a file.
-
+    从文件加载实体频率的映射
+    参数：path_to_map:map文件的路径
     :param path_to_map: location of the map file
+    返回值：实体映射字典？
     :return: entity map as a dictionary
     >>> load_entity_freq_map("../resources/wikidata_entity_freqs.map")['Q76']
     7070
@@ -330,7 +348,8 @@ def load_entity_freq_map(path_to_map):
 def load_entity_map(path_to_map):
     """
     Load the map of entity labels from a file.
-
+    从文件中家在实体的标签映射
+    参数：ath_to_map:map文件的路径
     :param path_to_map: location of the map file
     :return: entity map as an nltk.Index
     """

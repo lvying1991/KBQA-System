@@ -5,7 +5,7 @@ import numpy as np
 from questionanswering.models import modules
 from questionanswering.models.modules import batchmv_cosine_similarity
 
-
+#传播模型
 class PropagationModel(nn.Module):
 
     def __init__(self,
@@ -37,7 +37,7 @@ class PropagationModel(nn.Module):
         new_state = self._update_layer(torch.cat((new_state, current_state), dim=-1))
         return new_state
 
-
+#门控传播模型
 class GatedPropagationModel(nn.Module):
 
     def __init__(self,
@@ -87,7 +87,7 @@ class GatedPropagationModel(nn.Module):
 
         return new_state
 
-
+#图神经网络
 class GNN(nn.Module):
 
     def __init__(self,
@@ -120,6 +120,7 @@ class GNN(nn.Module):
                                  out_features=hp_out_features, bias=False)
         self._dropout = nn.Dropout(p=hp_dropout)
 
+    #重置权重
     def reset_weights(self):
         self.in_edge.data.normal_(mean=0, std=np.sqrt(1/self.in_edge.size(1)))
         self.out_edge.data.normal_(mean=0, std=np.sqrt(1/self.out_edge.size(1)))
@@ -149,7 +150,7 @@ class GNN(nn.Module):
         return graph_vector
         # return current_state.sum(dim=1)[0]
 
-
+#门控图神经网络模型
 class GNNModel(nn.Module):
 
     def __init__(self,

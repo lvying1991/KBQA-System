@@ -6,6 +6,8 @@ from torch import autograd
 class LogSumExpPooling1d(nn.Module):
     """Applies a 1D LogSumExp pooling over an input signal composed of several input planes.
     LogSumExp is a smooth approximation of the max function.
+    在由多个输入平面组成的输入信号上应用1D LogSumExp池。
+    LogSumExp是max函数的平滑近似值。
 
     Examples:
     >>> m = LogSumExpPooling1d()

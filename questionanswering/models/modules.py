@@ -4,7 +4,9 @@ from torch import nn as nn
 
 from questionanswering.models import pooling as P
 
+"""模块组件"""
 
+#
 class ConvWordsEncoder(nn.Module):
 
     def __init__(self,
@@ -109,12 +111,16 @@ class ConvWordsEncoder(nn.Module):
         return words_v
 
 
+#相似度
 def batchmv_cosine_similarity(m, v):
     """
     Computes a cosine similarity between batches of matrices and vectors.
-
+    计算批量矩阵和向量之间的余弦相似度
+    参数：m：一个包含一批矩阵的#维张量
     :param m: a #D tensor that contains a batch of matrices
+    参数：v：一个包含一批矩阵的2维张量
     :param v: a 2D tensor that contains a batch of vectors
+    返回值：每个矢量*矩阵行具有相似度值的2D张量？？
     :return: a 2D tensor with similarity values per vector * matrix row
     """
     predictions = torch.bmm(m, v.unsqueeze(2)).squeeze()

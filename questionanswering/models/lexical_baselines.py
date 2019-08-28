@@ -4,6 +4,7 @@ from torch import nn as nn
 from questionanswering.models import modules
 from questionanswering.models.modules import batchmv_cosine_similarity
 
+"""基线模型"""
 
 class OneEdgeModel(nn.Module):
 

@@ -70,7 +70,7 @@ class DatasetWithoutNegatives(Dataset, metaclass=abc.ABCMeta):
             negative_pool.append(neg_graph)
         return negative_pool
 
-
+#简单问题
 class SimpleQuestions(DatasetWithoutNegatives):
 
     def __init__(self, parameters, **kwargs):
@@ -91,7 +91,7 @@ class SimpleQuestions(DatasetWithoutNegatives):
         self._idx2property = set(scheme.property2label.keys()) - scheme.property_blacklist
         self._idx2property = list(self._idx2property)
 
-
+#维基百科
 class Wikipedia(DatasetWithoutNegatives):
     def __init__(self, parameters, **kwargs):
         super(Wikipedia, self).__init__(parameters, **kwargs)
@@ -128,13 +128,14 @@ class Wikipedia(DatasetWithoutNegatives):
         self._idx2property = {e.get("kbID") for s in self._questions_data for e in s['edgeSet']}
         self._idx2property = list(self._idx2property)
 
-
+#webquestion
 class WebQuestions(Dataset):
     def __init__(self, parameters, **kwargs):
         """
         An object class to access the webquestion dataset. The path to the dataset should point to a folder that
         contains a preprocessed dataset.
-
+        用于访问webquestion数据集的对象类。 数据集的路径应指向该文件夹 包含预处理的数据集
+        参数：数据集路径
         :param path_to_dataset: path to the data set location
         """
         super(WebQuestions, self).__init__(**kwargs)
@@ -172,11 +173,11 @@ class WebQuestions(Dataset):
             self.logger.debug("Average number of choices per question: {}".format(np.mean([len(graphs) for graphs in self._silver_graphs])))
             self._silver_graphs = [graph_set if any(len(g) == 3 and type(g[1]) is list and len(g[1]) == 3 and g[1][2] > 0.0 for g in graph_set) else [] for graph_set in self._silver_graphs ]
             self.logger.debug("Real average number of choices per question: {}".format(np.mean([len(graphs) for graphs in self._silver_graphs])))
-
+    #获取样本？
     def _get_samples(self, questions, model=None):
         indices = self._get_sample_indices(questions)
         return self._get_indexed_samples(indices, model=model)
-
+    #获取全部？
     def _get_full(self, questions):
         indices = self._get_sample_indices(questions)
         max_silver_samples = self._p.get("max.silver.samples", 15)
@@ -187,7 +188,7 @@ class WebQuestions(Dataset):
         self._p["max.silver.samples"] = max_silver_samples
         self._p["max.negative.samples"] = max_negative_samples
         return full_sample
-
+    #获得样本指数
     def _get_sample_indices(self, questions):
         indices = [q_obj['index'] for q_obj in questions
                    if any(len(g) == 3 and len(g[1]) == 3 and g[1][2] > self._p.get("f1.samples.threshold", 0.5)
@@ -195,7 +196,7 @@ class WebQuestions(Dataset):
                           for g in self._silver_graphs[q_obj['index']])
                    ]
         return indices
-
+    #获得索引样本
     def _get_indexed_samples(self, indices, model=None):
         graph_lists = []
         targets = []
@@ -223,7 +224,7 @@ class WebQuestions(Dataset):
                 graph_lists.append((question_tokens, graph_list))
                 targets.append(target)
         return graph_lists, targets
-
+    #？？获得问题的负面银？？
     def _get_question_negative_silver(self, index, graph_list=None):
         if graph_list is None:
             graph_list = []
@@ -234,13 +235,13 @@ class WebQuestions(Dataset):
                 edge.get("type") == 'iclass' for edge in n_g[0].get('edgeSet', [])))
                          and all(n_g[0].get('edgeSet', []) != g[0].get('edgeSet', []) for g in graph_list)]
         return negative_pool
-
+    #获得问题的正面银？？？
     def _get_question_positive_silver(self, index):
         graph_list = [p_g for p_g in self._silver_graphs[index]
                       if len(p_g) == 3 and type(p_g[1]) is list and len(p_g[1]) == 3 and p_g[1][2] > self._p.get("f1.samples.threshold", 0.1)
                       and (not self._p.get("only.with.iclass", False) or any(edge.get("type") == 'iclass' for edge in p_g[0].get('edgeSet', [])))]
         return graph_list
-
+    #负样本实例
     def _instance_with_negative(self, graph_list, negative_pool, negative_pool_scores):
         assert self._p.get("max.silver.samples", 15) < self._p.get("max.negative.samples", 30) or self._p.get("max.negative.samples", 30) == -1
         negative_pool_size = self._p.get("max.negative.samples", 30) - len(graph_list)
@@ -266,7 +267,7 @@ class WebQuestions(Dataset):
             + [0.0] * (self._p.get("max.negative.samples", 30) - len(instance))
         instance = [el[0] for el in instance]
         return instance, target
-
+    #获取问题标记？
     def get_question_tokens(self, index):
         tokens = [w for w, _, _ in self._dataset_tagged[index]]
         if self._p.get("replace.entities", False) and len(self._silver_graphs) > 0:
@@ -274,7 +275,7 @@ class WebQuestions(Dataset):
         if self._p.get("normalize.tokens", False):
             tokens = [re.sub(r"\d+", "<n>", t.lower()) for t in tokens]
         return tokens
-
+    #获取训练样本
     def get_training_samples(self, model=None):
         """
         Get a set of training samples. A tuple is returned where the first element is a list of
@@ -282,7 +283,9 @@ class WebQuestions(Dataset):
         from the corresponding graph set. Graph sets are all of size 30, negative graphs are subsampled or
         repeatedly sampled if there are more or less negative graphs respectively.
         Graph are stored in triples, where the first element is the graph.
-
+        获取一组训练样本。返回一个元组，其中第一个元素是一个列表图集和第二个元素是索引列表。索引指向正确的图形解析从对应的图集中。
+        图集大小均为30，负向图取子采样或如果有较多或较少的负向图，则分别重复采样。图存储在三元组中，其中第一个元素是图。
+        参数：模型
         :param model: an optional qamodel that is used to select the negative samples, otherwise random
         :return: a set of training samples.
         """
@@ -297,9 +300,12 @@ class WebQuestions(Dataset):
 
     def get_validation_samples(self):
         """
+        获取验证样本
         See the documentation for get_training_samples
+        参见get_training_samples的文档
 
         :return: a set of validation samples distinct from the training samples.
+        与训练样本不同的一组验证样本
         """
         indices = self._get_sample_indices(self._questions_val)
         each_separate = self._p.get('train.each.separate', False)
@@ -314,6 +320,7 @@ class WebQuestions(Dataset):
     def get_full_validation(self):
         """
         :return: a set of training samples.
+        一组训练样本
         """
         each_separate = self._p.get('train.each.separate', False)
         self._p['train.each.separate'] = False
@@ -323,27 +330,33 @@ class WebQuestions(Dataset):
 
     def get_question_tokens_set(self):
         """
+        获取问题的标记配置
         Generate a list of tokens that appear in question in the complete dataset.
+        生成在完整数据集中出现问题的标记列表
 
         :return: set tokens
         """
         if self._p.get("normalize.tokens", False):
             return {re.sub(r"\d+", "<n>", w.lower()) for q in self._dataset_tagged for w, _, _ in q}
         return {w for q in self._dataset_tagged for w, _, _ in q}
-
+    #获取训练集标记
     def get_training_tokens(self):
         """
         Return all question tokens in the training set.
+        返回训练集中所有的问题标记
 
         :return: a list of lists of tokens
+        返回标记列表
         """
         return [self.get_question_tokens(index) for index in self._get_sample_indices(self._questions_train)]
 
     def get_property_set(self):
         """
         Generate a set of all properties appearing in the dataset.
+        生成数据集中出现的所有属性的集合。
 
         :return: set of property ids
+        属性id集
         """
         property_set = {e.get("kbID", "")[:-1] for graph_set in self._silver_graphs
                         for g in graph_set for e in g[0].get('edgeSet', []) if 'kbID' in e}
@@ -352,8 +365,10 @@ class WebQuestions(Dataset):
     def get_training_properties_tokens(self):
         """
         Retrieve a list of property tokens that appear in the training data.
+        检索训练数据中出现的属性标记列表
 
         :return: a list of lists of property tokens
+        属性标记列表的列表？
         """
         return [scheme.property2label.get(e.get("kbID", "")[:-1], {}).get("label", base_objects.unknown_el).split()
                 # + " ".join(wdaccess.property2label.get(e.get("kbID", "")[:-1],{}).get("altlabel", [])).split()
@@ -364,10 +379,13 @@ class WebQuestions(Dataset):
         """
         Get a set of training samples as a cyclic generator. Negative samples are generated randomly at
         each step.
+        获取一组训练样本作为循环生成器。负样本随机产生于每一个步骤。
+        警告:此生成器是无限的，请确保您有一个停止状态。
         Warning: This generator is endless, make sure you have a stopping condition.
-
+        
         :param batch_size: The size of a batch to return at each step
         :return: a generation that continuously returns batch of training data.
+        持续返回一组训练数据的生成器
         """
         indices = self._get_sample_indices(self._questions_train)
         for i in itertools.cycle(range(0, len(indices), batch_size)):
@@ -377,14 +395,18 @@ class WebQuestions(Dataset):
     def get_train_sample_size(self):
         """
         Compute the size of the training sample with the current settings
+        使用当前设置 计算 训练样本的大小
+        
 
         :return: size of the training sample.
+        返回训练样本的大小
         """
         return len(self._get_sample_indices(self._questions_train))
 
     def get_dataset_size(self):
         """
         Get the size of the complete available dataset.
+        获取完整可用数据集的大小
 
         :return: size of the dataset.
         """
@@ -394,9 +416,12 @@ class WebQuestions(Dataset):
 def get_answers_from_question(question_object):
     """
     Retrieve a list of answers from a question as encoded in the WebQuestions dataset.
+    从WebQuestions数据集中编码的问题中检索答案列表
 
     :param question_object: A question encoded as a Json object
+    参数：问题对象
     :return: A list of answers as strings
+    返回字符串形式的答案列表
     >>> get_answers_from_question({"url": "http://www.freebase.com/view/en/natalie_portman", "targetValue": "(list (description \\"Padm\u00e9 Amidala\\"))", "utterance": "what character did natalie portman play in star wars?"})
     ['Padmé Amidala']
     >>> get_answers_from_question({"targetValue": "(list (description Abduction) (description Eclipse) (description \\"Valentine's Day\\") (description \\"New Moon\\"))"})
@@ -421,6 +446,7 @@ def get_answers_from_question(question_object):
 def get_main_entity_from_question(question_object):
     """
     Retrieve the main Freebase entity linked in the url field
+    检索url字段中链接的主要Freebase实体
 
     :param question_object: A question encoded as a Json object
     :return: A list of answers as strings
@@ -441,7 +467,7 @@ def get_main_entity_from_question(question_object):
         return [w.title() for w in entity_tokens], 'URL'
     return ()
 
-
+#没有顶点的图的字典？？
 def dict_to_graph_with_no_vertices(d):
     if 'vertexSet' in d:
         del d['vertexSet']
@@ -451,9 +477,11 @@ def dict_to_graph_with_no_vertices(d):
 def softmax(x):
     """
     Compute softmax non-linearity on a vector
-
+    计算向量的非线性softmax
+    参数：一个向量
     :param x: vector input
     :return: vector output of the same dimension
+    返回：相同维度的向量
     """
     return np.exp(x) / np.sum(np.exp(x))
 
@@ -461,8 +489,10 @@ def softmax(x):
 def f1_to_dist(x):
     """
     Transforms a list of f1 to a probability distribution. 
-    
+    将f1列表转换为概率分布
+    参数：f1分数列表
     :param x: a list of f1 scores
+    返回值：概率分布
     :return: a probability distribution
     >>> f1_to_dist([0.28571,0.0,0.0,0.0])
     array([ 1.,  0.,  0.,  0.])

@@ -73,7 +73,7 @@ CONTENT_PROPERTIES = scheme.content_properties - BLACK_LIST
 
 FREQ_THRESHOLD = 500
 
-
+#滤波器的关系
 def filter_relations(results, b='p', freq_threshold=0):
     """
     Takes results of a SPARQL query and filters out all rows that contain blacklisted relations.
@@ -95,7 +95,8 @@ def filter_relations(results, b='p', freq_threshold=0):
 def get_all_groundings(g: SemanticGraph):
     """
     Construct groudnings based on the wikidata scheme.
-
+    根据wikidata方案构建地面
+    参数：语义图g
     :param g:
     :return:
     >>> len(get_all_groundings(SemanticGraph([Edge(leftentityid=QUESTION_VAR, rightentityid='Q571', qualifierentityid='MAX')])))
@@ -117,7 +118,8 @@ def get_graph_groundings(g: SemanticGraph, pass_exception=False, use_wikidata=Tr
     """
     Convert the given graph to a WikiData query and retrieve the results. The results contain possible bindings
     for all free variables in the graph. If there are no free variables a single empty grounding is returned.
-
+    将给定图形转换为WikiData查询并检索结果。 结果包含图中所有自由变量的可能绑定。 如果没有自由变量，
+    则返回单个空接地。
     :param g: graph as a dictionary
     :param pass_exception:
     :return: graph groundings encoded as a list of dictionaries
@@ -161,8 +163,10 @@ def get_graph_groundings(g: SemanticGraph, pass_exception=False, use_wikidata=Tr
 def verify_grounding(g: SemanticGraph):
     """
     Verify the given graph with (partial) grounding exists in Wikidata.
-
+    验证Wikidata中存在（部分）接地的给定图？？
+    参数：图
     :param g: graph as a dictionary
+    返回：如果图存在返回true，如果不是返回false
     :return: true if the graph exists, false otherwise
     >>> verify_grounding(SemanticGraph([Edge(leftentityid=QUESTION_VAR, rightentityid="Q76")]))
     True
@@ -183,6 +187,7 @@ def get_graph_denotations(g: SemanticGraph):
     """
     Convert the given graph to a WikiData query and retrieve the denotations of the graph. The results contain the
      list of the possible graph denotations
+     将给定图转换为WikiData查询并检索图的表示。 结果包含可能的图表示列表
 
     :param g: graph as a SemanticGraph
     :return: graph denotations as a list of dictionaries
@@ -220,6 +225,7 @@ def get_graph_denotations(g: SemanticGraph):
 def filter_auxiliary_entities_by_id(denotations):
     """
     A safe net method that removes all auxiliary methods from the denotations.
+    一种安全的网络方法，可以从表示中删除所有辅助方法
 
     :param denotations: a list of entity ids
     :return: list of entitiy ids
@@ -252,8 +258,10 @@ def graph_to_ask(g, **kwargs):
 def edge_to_sparql(edge: graph.Edge, expand_transitive=EXPAND_TRANSITIVE_RELATIONS):
     """
     Convert a graph edge to a piece of a SPARQL query.
-
+    将图的边转换为SPARQL查询的一部分。
+    参数：输入边
     :param edge: input Edge
+    返回值：SPARQL字符串语句
     :return: SPARQL piece as a string
     >>> edge_to_sparql(graph.Edge("Q76", None , QUESTION_VAR)).strip()
     '{ GRAPH g:statements { e:Q76 ?r0s ?m0 . ?m0 ?r0v ?qvar .  } }'
@@ -336,12 +344,18 @@ def edge_to_sparql(edge: graph.Edge, expand_transitive=EXPAND_TRANSITIVE_RELATIO
 def graph_to_query(g: SemanticGraph, ask=False, limit=endpoint_access.GLOBAL_RESULT_LIMIT):
     """
     Convert graph to a SPARQL query.
-
+    将图转化为SPARQL查询语句
+    
     :param ask: if the a simple existence of the graph should be checked instead of returning variable values.
+    ask：如果应该检查图的简单存在而不是返回变量值
     :param g: a graph as a dictionary with non-empty edgeSet
+    g：一个边集不为空的图
     :param return_var_values: if True the denotations for free variables will be returned
+    return_var_values:如果是True，返回自由变量的表示
     :param limit: limit on the result list size
+    limit：限制结果列表大小
     :return: a SPARQL query as a string
+    返回值：字符串形式的SPARQL查询语句
     >>> print(graph_to_query(SemanticGraph(edges=[graph.Edge(0, "Q76", None , QUESTION_VAR)]) ))
 
     """
@@ -382,10 +396,11 @@ def graph_to_query(g: SemanticGraph, ask=False, limit=endpoint_access.GLOBAL_RES
 
     return query
 
-
+#弃用
 def character_query(label, film_id, limit=3):
     """
     Depricated!
+    弃用
     A method to look up a WikiData film character by a label.
 
     :param label: label of the entity as str
@@ -419,8 +434,12 @@ def character_query(label, film_id, limit=3):
 def label_query_results(query_results):
     """
     Extract the variable values from the query results and map them to canonical WebQuestions strings.
-
+    从查询结果中提取变量值，并将它们映射到规范的WebQuestions字符串
+    
+    参数：
+    查询结果：sparql端点返回的字典列表
     :param query_results: list of dictionaries returned by the sparql endpoint
+    返回值：作为实体标签的答案列表或未找到规范标签的原始ID
     :return: list of answers as entity labels or an original id if no canonical label was found.
     >>> sorted(sorted(label_query_results(['Q76', 'Q235234', 'r68123123-12dd222']))[0])  # doctest: +ELLIPSIS
     ['barack h. obama', 'barack hussein obama', ...]
@@ -437,8 +456,10 @@ def label_query_results(query_results):
 def normalize_answer_strings(answers):
     """
     Add normalized alternative labels.
-
+    添加标准化的替代（可选择？）标签
+    参数：answers：字符串答案列表列表
     :param answers: list of lists of string answers
+    返回值：字符串答案列表列表
     :return: list of lists of string answers
     >>> normalize_answer_strings([['twilight saga: breaking dawn - part 2'], ['the twilight saga: new moon', 'twilight saga: new moon']])
     [['twilight saga: breaking dawn - part 2', 'twilight saga', 'breaking dawn - part 2', 'twilight saga: breaking dawn', 'part 2', 'breaking dawn'], ['the twilight saga: new moon', 'twilight saga: new moon', 'twilight saga', 'the twilight saga', 'new moon']]
